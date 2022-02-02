@@ -8,13 +8,13 @@ Intel and also the inspiration for Haiku.
 
 This archive will contain every package we can find. Most will initially be in a compressed form, but as
 we take each package and test under BeOS, we will put the source code we find outside of any archive and 
-will try to package up the source and binaries are assets to make finding the zips easier. The main site
-associated with this account will become a page that documents our activities and has direct links to 
-the software - a bit like a static BeBits I guess.
+will try to package up the source and binaries as assets against this project to make finding the zips 
+easier. The main site associated with this account will become a page that documents our activities and 
+has direct links to the software - a bit like a static BeBits I guess.
 
 Any significant project will be put in to its own repository.
 
-We also hope to port more moders software to BeOS PowerPC and have started to gather tools to make this
+We also hope to port more modern software to BeOS PowerPC and have started to gather tools to make this
 possible. We are currently collabourating with the Retro68 project to get a modern C compiler.
 
 # Organisation
