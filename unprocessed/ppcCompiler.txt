@@ -1,0 +1,74 @@
+         File: ppcCompiler.zip
+       Author: ETH Zurich
+      Release: 1.0 (3 August 1998)
+Compatibility: R3
+     Location: contrib/lang
+  Description: Oberon-2 compiler for PowerPC
+        Notes:
+
+Compiler
+--------
+This is a simple one-pass ETH compiler based on the original OOP compiler
+by Regis Crelier and modified to produce PPC code by Markus A. Hof.
+The original compiler runs on Oberon System 4 on a Power Mac.  This
+version runs from the command line and will produce PPC ETH object 
+and symbol files on any platform which has support for oo2c.
+
+Invocation syntax is: Compiler [options] <oberon module> {[oberon module]}.
+
+The following command line options are supported:
+
+    -h         Print this text
+    -d         Show intermediate syntax tree
+    -x         Index check on
+    -v         Overflow check on
+    -r         Range check on
+    -t         Type check on
+    -s         Generation of new symbol file allowed
+    -p         Pointer initialization
+    -n         NIL pointer checks on read accesses
+    -a         Assert evaluation
+    -f         Find text position of breakpc
+    -c         Use PowerPC instruction set
+    -w         Suppress warning 301
+
+The default options are -x -t -n -p -a -c.  Adding these options to the 
+command line will toggle the appropriate flags.
+
+Sorry, a "Make" facility isn't currently available.  It may be possible to 
+port the Oberon system Make to work from a command line, but I haven't 
+investigated this possibility yet.
+
+NOTE: I haven't tested this compiler very much and don't plan to do so for
+this version.  I will be producing another version which has a code generator
+for the PIC series of microcontrollers.
+
+This compiler may be useful to anyone porting the Oberon system to another PPC
+platform which doesn't currently have an Oberon System available.  If this is 
+the case, I have the full Oberon System source code, including the loader, so 
+contact me at the email address below.
+
+This version of the source has been modified to work with the current set of
+OOC library modules.
+
+
+Decode
+------
+
+This utility is part of the Oberon System.  It basically decodes the Obj 
+output from the compiler to give a disassembled version of the object code and
+some additional information about symbolic references, pointers, etc.
+
+Invocation:  Decode <oberon object>
+
+
+Disclaimer
+----------
+
+This compiler IS NOT supported in any way so if you can use it, great but I 
+can't promise to fix any problems you may encounter.  I am interested in 
+hearing about bugs though, so please send me email. 
+
+-----------------------------------------------------------------------------
+
+Michael Griebling      email: mgriebling@inspired.to

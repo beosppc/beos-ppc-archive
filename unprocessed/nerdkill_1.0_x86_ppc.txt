@@ -1,0 +1,15 @@
+========================================================================
+         File: nerdkill_1.0_x86_ppc.zip
+       Author: Raphael MOLL (raphael.moll@capway.com)
+      Release: 1.0 (final, x86, 01 Septembre 1998)
+Compatibility: R3 Intel and R3 PPC
+     Location: contrib/games
+  Description: A blast-all-these-nerds game - same DR9 port
+        Notes: Get rid of these annoying nerds. Shoot them, gun them,
+               electrize them, explode them ! No one must escape !
+               First presented at Paris' Be GeekFest, Feb'97.
+               Presented at BeDC Master Awards, May 1997.
+               Last bugs corrected.
+========================================================================
+
+Have a nice nerdkilling and stay tuned for the incoming Nerdkil 3d release :-)

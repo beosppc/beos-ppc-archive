@@ -1,0 +1,17 @@
+=====================
+         File: zip-2.3.zip
+       Author: Info-ZIP (http://www.info-zip.org/pub/infozip/)
+               BeOS port by Chris Herborth (chrish@pobox.com)
+      Release: 2.3
+Compatibility: R5 (PowerPC platform)
+     Location: /pub/contrib/util/
+  Description: Create and manipulate .zip files.  Supports file attributes.
+        Notes: Zip 2.3, with support for BeOS file attributes, PowerPC and
+               x86.  Fixes lots of bugs and oversights in the older versions.
+
+ Installation: Unpack the archive (using unzip), and move the
+               executables into /boot/home/config/bin.  You're done!  Be
+               sure to read the documentation though; you're probably
+               looking for the -y option (preserve symbolic links). :-)
+			   And you'll want to use -r to store directories...
+=====================

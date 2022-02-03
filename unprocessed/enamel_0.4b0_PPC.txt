@@ -1,0 +1,37 @@
+File:			enamel_0.4b0_PPC.zip
+Author:		Stegemann & Co., Inc. (enamel@stegemann.net)
+Release:		0
+Version:		0.4b0
+Compatibility:	R4
+Location:		/contrib/network
+Notes:
+
+enamel is a server and client package for emails and news. enamel is split 
+into several programs to import, process, export and for sure, to read email
+and news. The current news support is very beta and might lead to problems,
+but give it a try!
+
+enamel is part of the InternetSuite concepted by Stegemann & Co., Inc., which
+is commercial software. This version ships without keyfile which puts some
+restrictions on enamel. You are allowed to test enamel for a period of 30 days.
+
+If you're author of shareware or freeware and you need enamel, mail us! 
+Maybe we can make you a special offer.
+
+For more information about the InternetSuite and pricing, contact us!
+
+Changes:
+
+	- Support for news was added.
+
+Features:
+
+	- Multiple account managment. 
+	- Integrated foldering. 
+	- Highly modular with public message format. 
+	- Redirects for automatic message distribution and mailing lists. 
+	- Integrates Mail and News.
+
+Contact: enamel@stegemann.net
+
+Copyright © 1998-99 Stegemann & Co., Inc., all rights reserved.

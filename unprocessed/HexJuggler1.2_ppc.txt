@@ -1,0 +1,12 @@
+=====================
+File:HexJuggler1.2_ppc.zip
+Author: Masao Kawamura (djapana@ba2.so-net.or.jp)
+Release: 1.2
+Compatibility: R3
+Location: contrib/editors
+Description: Hexadecimal editor with standard GUI
+Notes: HexJuggler is a hexadecimal file editor with standard
+	GUI and editing features including cut & paste, search, replace.
+	Version 1.2 is R3 compatible. Some bugs in Find and Replace has
+	been also fixed.
+=====================

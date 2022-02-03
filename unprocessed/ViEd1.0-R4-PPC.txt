@@ -1,0 +1,9 @@
+File: ViEd1.0-R4-PPC.pkg
+Author: Nathanael Ong (natong@bigfoot.com)
+Release: 1.0 (Jan. 8th, 1999)
+Compatibility: R4
+Location: contrib/develop
+Description: ViEd is a free GUI creator/editor and source code generator for BeOS developers.
+Notes: This is the first time ViEd is uploaded.
+
+

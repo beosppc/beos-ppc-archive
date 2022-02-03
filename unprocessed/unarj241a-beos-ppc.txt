@@ -1,0 +1,3 @@
+A port of Robert K Jung's decompressor for arj by Terry Glass (terry@iamerica.net).
+
+All that was required to build this was modification of the Makefile I got with the Linux source.

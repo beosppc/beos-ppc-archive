@@ -1,0 +1,14 @@
+         File: liblayout-usr-PPC.zip
+       Author: Marco Nelissen <marcone@xs4all.nl>
+      Release: 1.1.0 (May 15, 1998)
+Compatibility: R3
+     Location: contrib/libraries
+  Description: library for easy creation of resizable, font-sensitve GUI's
+        Notes: This library contains a collection of classes that enable you to
+               easily create fully resizable and font-sensitve GUI's.
+               Lots of classes are provided (some based on Be's classes, some
+               custom classes), and it is very easy to make your own.
+               To install, unzip the archive and move liblayout.so to 
+               /boot/home/config/lib
+               
+

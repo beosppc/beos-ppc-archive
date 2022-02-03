@@ -1,0 +1,77 @@
+======================================
+                 File:  BZip2-0.9.5c-ppc.pkg
+           Author:  Michael Griebling (mgriebling@inspired.to)
+         Release:  V0.9.5c for BeOS, 2 September 1999
+Compatibility:  R4.5
+        Location:  contrib/util
+    Description:  Gzip-like utility with much better compression.
+             Notes:  Now includes precompiled binaries.
+Bzip2  compresses  files  using the Burrows-Wheeler block-sorting 
+text compression algorithm,  and  Huffman  coding.
+Compression  is  generally  considerably  better than that
+achieved by more conventional LZ77/LZ78-based compressors,
+and  approaches  the performance of the PPM family of statistical 
+compressors.  It is around twice as fast at compression and six
+times faster at decompression than other compressors and it
+is patent-free.  This archive includes a pre-compiled version for
+BeOS.
+
+The command-line options are deliberately very similar  to
+those of GNU Gzip, but they are not identical.
+
+NEW IN 0.9.5.c (vs 0.9.0c)
+
+Major change: add a fallback sorting algorithm (blocksort.c)
+to give reasonable behaviour even for very repetitive inputs.
+Nuked --repetitive-best and --repetitive-fast since they are
+no longer useful.
+
+Open stdin/stdout in binary mode for DJGPP.
+
+Change BZ_N_OVERSHOOT to be ... + 2 instead of ... + 1.  The + 1
+version could cause the sorted order to be wrong in some extremely
+obscure cases.  Also changed setting of quadrant in blocksort.c.
+
+Minor changes: mostly a whole bunch of small changes/
+bugfixes in the driver (bzip2.c).  Changes pertaining to the
+user interface are:
+
+   allow decompression of symlink'd files to stdout
+   decompress/test files even without .bz2 extension
+   give more accurate error messages for I/O errors
+   when compressing/decompressing to stdout, don't catch control-C
+   read flags from BZIP2 and BZIP environment variables
+   decline to break hard links to a file unless forced with -f
+   allow -c flag even with no filenames
+   preserve file ownerships as far as possible
+   make -s -1 give the expected block size (100k)
+   add a flag -q --quiet to suppress nonessential warnings
+   stop decoding flags after --, so files beginning in - can be handled
+   resolved inconsistent naming: bzcat or bz2cat ?
+   bzip2 --help now returns 0
+
+NEW IN 0.9.0.c (vs 0.9.0b)
+
+Fixed some problems in the library pertaining to some boundary cases.
+This makes the library behave more correctly in those situations.  The
+fixes apply only to features (calls and parameters) not used by
+bzip2.c, so the non-fixedness of them in previous versions has no
+effect on reliability of bzip2.c.
+
+
+WHAT'S NEW IN 0.9.0 (as compared to 0.1pl2) ?
+
+   * Approx 10% faster compression, 30% faster decompression
+   * -t (test mode) is a lot quicker
+   * Can decompress concatenated compressed files
+   * Programming interface, so programs can directly read/write .bz2 files
+   * Less restrictive (BSD-style) licensing
+   * Flag handling more compatible with GNU gzip
+   * Much more documentation, i.e., a proper user manual
+   * Hopefully, improved portability (at least of the library)
+ 
+I only ported this package to the BeOS so please direct 
+your comments and questions to the original author Julian 
+Seward at: jseward@acm.org or visit his home page 
+at http://www.muraroa.demon.co.uk/
+======================================

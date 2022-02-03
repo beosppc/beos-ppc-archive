@@ -1,0 +1,29 @@
+File:        	  	campus_2.1_PPC.zip
+Author:         	Stegemann & Co., Inc. (campus@stegemann.net)
+Version:        	2.1
+Compatibility:  	R4 PPC
+Location:       	/contrib/network
+Notes:			campus ftp server for BeOS/PPC
+
+campus is a full featured ftp server for the BeOS.
+
+campus is part of the InternetSuite concepted by Stegemann & Co., Inc. 
+which is commercial software. This version is without keyfile which puts 
+some restrictions on campus. You are allowed to test campus for a period
+of 30 days.
+
+If you're author of shareware or freeware and need campus, mail us! Maybe 
+we have a special offer for you.
+
+For more information about the InternetSuite and pricing, contact us!
+
+Changes:
+ * Configuration via GUI
+ * On-the-fly reloading of the configuration
+ * Improved logging
+ * Multiple ports
+ * Improved multithreading
+
+Contact: campus@stegemann.net
+
+Copyright © 1997-1999 Stegemann & Co., Inc., all rights reserved.

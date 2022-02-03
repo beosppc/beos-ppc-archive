@@ -1,0 +1,13 @@
+=====================
+
+         File:	img2rsrc_ppc.txt
+       Author:	Ernest Tomlinson
+      Release:  1.0 (24 May 1998)
+Compatibility:	BeOS PR2 for PPC
+     Location:	/contrib/gfx/develop/
+  Description:	img2rsrc 1.0 - converts image files to ICON and MICN resources
+        Notes:	img2rsrc reads in graphics files in any format which Datatypes
+        		or the Translation Kit can handle, and converts them into ICON
+        		and MICN resources and attributes for inclusion in Be projects.
+        		
+===================== 

@@ -1,0 +1,9 @@
+          File: joe2.8-PPCR3.zip
+        Author: Duraid Madina (duraid@fl.net.au)
+       Release: 1.0 (Aug. 18th, 1998)
+ Compatibility: R3
+      Location: contrib/productivity
+   Description: This is a port of JOE (Joe's own editor),
+                the famous UNIX text editor.
+         Notes: This is the first release of my (simple)
+                port. Some features _might_ be broken.

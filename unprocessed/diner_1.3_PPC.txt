@@ -1,0 +1,50 @@
+File:        	  	diner_1.3_PPC.zip
+Author:         	Stegenann & Co., Inc. (diner@stegemann.net)
+Release:        	1
+Version:        	1.3
+Compatibility:  	R4
+Location:       	/contrib/network
+Notes:
+
+diner is the first third party HTTP-server for the BeOS. It was written from
+the ground up and is a 100% native implementation, designed to support
+and use the BeOS' special features and capabilites.
+
+In addition to standard features, such as support for virtual servers and
+multiple ports, it uses the BeOS AddOn interface to enable easy integration
+of custom built server extensions.
+
+The enhanced Inline Module Invocation system makes it trivial to host
+dynamic web pages with some simple lines of HTML.
+
+diner is part of the InternetSuite - the server package including HTTP, FTP
+and e-Mail servers. This version is without keyfile which puts some
+restrictions on diner. You are allowed to test diner for a period of 30 days.
+
+If you're author of shareware or freeware and you need diner, mail us!
+Maybe we can make you a special offer.
+
+For more information about the InternetSuite and pricing, contact us! 
+
+Features:
+
+	- MIME-type oriented request conversion add-ons for CGI, etc.
+	- Inline AddOn invocation with support for Queries, Attributes, etc. 
+	- Support for virtual servers & multiple ports. 
+	- Uses MIME-types for content-type. 
+	- Silent remapping of paths.
+
+Changes:
+
+	- The InlineModuleInvocation modules were reworked and the
+	  documentation is now included! 
+
+	- GUI Preferences for simple setups!
+
+	- Added Date and Last-Modifed fields in the HTTP response. 
+	- Added support for If-Modified-Since. 
+	- Include module for the InlineModuleInvocation
+
+Contact: diner@stegemann.net
+
+Copyright © 1997-99 Stegemann & Co., Inc., all rights reserved.

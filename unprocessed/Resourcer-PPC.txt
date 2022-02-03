@@ -1,0 +1,7 @@
+File: Resourcer-PPC.zip
+Author: Nathan Whitehorn (NathanWhitehorn@kagi.com)
+Release: 2.5.2 (Sep. 6, 1999)
+Compatibility: R4 PowerPC
+Location: contrib/util
+Description: Resource editor with 30 data editors for pictures, sounds, cursors, strings, etc.
+Notes: Shareware
