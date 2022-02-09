@@ -1,0 +1,7 @@
+*.o
+*.xMAP
+*.xSYM
+PowerDown
+(Objects.PowerDown)
+install_dir
+_APP_

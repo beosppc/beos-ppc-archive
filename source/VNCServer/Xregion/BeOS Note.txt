@@ -1,0 +1,3 @@
+BeOS change - name it region.c rather than Region.c so that linking doesn't get confused with the Region.cxx file that results in two Region.o files.  That's because the IDE stuffs all the object files into the same directory.
+
+- AGMS20040719

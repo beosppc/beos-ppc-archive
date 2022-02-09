@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/boot/beos/system/servers/input_server -q
