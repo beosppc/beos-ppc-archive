@@ -1,0 +1,469 @@
+head	1.8;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.8
+date	2005.02.12.19.47.24;	author agmsmith;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2005.02.06.23.24.33;	author agmsmith;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2005.02.06.21.30.43;	author agmsmith;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2004.07.19.22.30.19;	author agmsmith;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2004.06.27.20.31.44;	author agmsmith;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2004.06.07.01.06.50;	author agmsmith;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2004.02.08.21.13.34;	author agmsmith;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.02.08.19.44.17;	author agmsmith;	state Exp;
+branches;
+next	;
+
+
+desc
+@This is the header file for the FrameBuffer for BeOS class,
+which is used for reading the screen contents.
+@
+
+
+1.8
+log
+@Moved the two different colour palette structures into the
+parent class and unified them.
+@
+text
+@/******************************************************************************
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.7 2005/02/06 23:24:33 agmsmith Exp agmsmith $
+ *
+ * This is the frame buffer access module for the BeOS version of the VNC
+ * server.  It implements an rfb::FrameBuffer object, which opens a
+ * slave BDirectWindow to read the screen pixels.
+ *
+ * Copyright (C) 2004 by Alexander G. M. Smith.  All Rights Reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this software; if not, write to the Free Software Foundation, Inc., 59
+ * Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ * $Log: FrameBufferBeOS.h,v $
+ * Revision 1.7  2005/02/06 23:24:33  agmsmith
+ * Added a generic status window feature so that even the
+ * BScreen approach gets a status window.
+ *
+ * Revision 1.6  2005/02/06 21:30:43  agmsmith
+ * Split frame buffer class into two parts, one for the old BDirectWindow
+ * screen reading technique, and another for the new BScreen method.
+ *
+ * Revision 1.5  2004/07/19 22:30:19  agmsmith
+ * Updated to work with VNC 4.0 source code (was 4.0 beta 4).
+ *
+ * Revision 1.4  2004/06/27 20:31:44  agmsmith
+ * Got it working, so you can now see the desktop in different
+ * video modes (except 8 bit).  Even lets you switch screens!
+ *
+ * Revision 1.3  2004/06/07 01:06:50  agmsmith
+ * Starting to get the SDesktop working with the frame buffer
+ * and a BDirectWindow.
+ *
+ * Revision 1.2  2004/02/08 21:13:34  agmsmith
+ * BDirectWindow stuff under construction.
+ *
+ * Revision 1.1  2004/02/08 19:44:17  agmsmith
+ * Initial revision
+ */
+
+
+/******************************************************************************
+ * This wraps the VNC colour map around the BeOS colour map.  It's a pretty
+ * passive class, so other people do things to it to change the values.
+ */
+
+class ColourMapHolder : public rfb::ColourMap
+{
+public:
+  virtual void lookup (int index, int* r, int* g, int* b);
+
+  color_map m_BeOSColourMap;
+    // The actual BeOS colour map to use.
+};
+
+
+
+/******************************************************************************
+ * This subclass of rfb:FrameBuffer lets us grab pixels from the screen.
+ * It has two different subclasses itself, one for reading the bitmap using
+ * the BScreen method (slower but more compatible) and one for the
+ * BDirectWindow method.
+ */
+
+class FrameBufferBeOS : public rfb::FullFramePixelBuffer
+{
+public:
+  FrameBufferBeOS ();
+    // Throws an rdr::Exception if the video board is incompatible.
+  virtual ~FrameBufferBeOS ();
+
+  virtual int getStride () const;
+  	// Just returns the cached stride value.  In pixels, not bytes!
+
+  virtual void GrabScreen ();
+    // Reads the whole screen into a memory buffer, for those techniques which
+    // don't have live access to screen memory.  Called when the incremental
+    // update has reached the bottom of the screen.  The default implementation
+    // does nothing.
+
+  virtual unsigned int LockFrameBuffer ();
+  virtual void UnlockFrameBuffer ();
+    // Call these to lock the frame buffer so that none of the settings
+    // or data pointers change, then do your work, then unlock it.  All
+    // the other functions in this class assume you have locked the
+    // frame buffer if needed.  LockFrameBuffer returns the serial number
+    // of the current settings, which gets incremented if the OS changes
+    // screen resolution etc, so you can tell if you have to change things.
+    // Maximum lock time is 3 seconds, otherwise the OS might give up on
+    // the screen updates and render the bitmap pointer invalid.
+    // Default implementation does nothing, returns 0.
+
+  virtual void SetDisplayMessage (const char *StringPntr);
+    // Sets the little bit of text in the corner of the screen that shows
+    // the status of the server.
+
+  virtual unsigned int UpdatePixelFormatEtc () = 0;
+    // Makes sure the pixel format, width, height, raw bits pointer are
+    // all up to date, matching the actual screen.  Returns the serial
+    // number of the settings, so you can tell if they have changed since
+    // the last time you called this function by a change in the serial
+    // number.
+
+protected:
+  void InitialiseStatusView ();
+    // A utility function for creating the status text BView and adding it to
+    // the status window, telling it to draw its text from this object's
+    // m_StatusString field.
+
+  unsigned int m_CachedPixelFormatVersion;
+    // This version number helps us quickly detect changes to the video mode,
+    // and thus let us avoid setting the pixel format on every frame grab.
+
+  unsigned int m_CachedStride;
+    // Number of pixels on a whole row.  Equals number of bytes per row
+    // (including padding bytes) divided by the number of bytes per pixel.
+
+  ColourMapHolder m_ColourMap;
+    // A copy of the screen's colour map, made when the pixel format was last
+    // updated.
+
+  char m_StatusString [20];
+    // The currently displayed status message text.  The BView that draws the
+    // status display reads the text out of this area of memory whenever it is
+    // refreshed.
+
+  BWindow *m_StatusWindowPntr;
+    // These are used for the status window, which displays the update counter
+    // in the top left corner of the screen.  The BDirect screen reader also
+    // uses this for its special subclass of BDirectWindow which handles screen
+    // reading and resolution change detection.  NULL if it hasn't been
+    // created.
+};
+
+
+/* This one uses the BDirectWindow technique to map the frame buffer into
+ * the virtual memory address space, where it can be read directly.
+ */
+
+class FrameBufferBDirect : public FrameBufferBeOS
+{
+public:
+  FrameBufferBDirect ();
+  virtual ~FrameBufferBDirect ();
+
+  virtual unsigned int LockFrameBuffer ();
+  virtual void UnlockFrameBuffer ();
+  virtual unsigned int UpdatePixelFormatEtc ();
+};
+
+
+/* This one uses the BScreen technique to read the screen into a separate
+ * bitmap, which then gets read by VNC.
+ */
+
+class FrameBufferBScreen : public FrameBufferBeOS
+{
+public:
+  FrameBufferBScreen ();
+  virtual ~FrameBufferBScreen ();
+
+  virtual void GrabScreen ();
+    // Grabs a copy of the pixels.  Assumes that the current pixel format is
+    // the same as this bitmap.  The pixels are stored in m_FullScreenCopyPntr.
+
+  virtual unsigned int UpdatePixelFormatEtc ();
+    // Examines the current screen settings for changes, updates the pixel
+    // format, and if necessary, also reallocates the m_FullScreenCopyPntr
+    // bitmap to match the format change.
+
+protected:
+  BScreen *m_BScreenPntr;
+    // The link back to the OS for the current screen settings.
+
+  BBitmap *m_ScreenCopyPntr;
+    // A copy of the screen, reallocated whenever the screen size or depth
+    // changes, by UpdatePixelFormatEtc.
+
+};
+@
+
+
+1.7
+log
+@Added a generic status window feature so that even the
+BScreen approach gets a status window.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.6 2005/02/06 21:30:43 agmsmith Exp agmsmith $
+d25 4
+d128 4
+a183 4
+
+  ColourMapHolder m_ColourMap;
+    // A copy of the screen's colour map, made when the pixel format was last
+    // updated.
+@
+
+
+1.6
+log
+@Split frame buffer class into two parts, one for the old BDirectWindow
+screen reading technique, and another for the new BScreen method.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.5 2004/07/19 22:30:19 agmsmith Exp agmsmith $
+d25 4
+d101 1
+a101 1
+    // the status of the server.  Default implementation does nothing.
+d111 5
+d119 1
+a119 1
+    
+d123 12
+a149 1
+  virtual void SetDisplayMessage (const char *StringPntr);
+a150 5
+
+protected:
+  class BDirectWindowReader *m_ReaderWindowPntr;
+    // Our BDirectWindow which is used for accessing the frame buffer.  NULL if
+    // it hasn't been created.
+d177 4
+a184 3
+  ColourMapHolder m_ColourMap;
+    // A copy of the screen's colour map, made when the pixel format was last
+    // updated.
+@
+
+
+1.5
+log
+@Updated to work with VNC 4.0 source code (was 4.0 beta 4).
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.4 2004/06/27 20:31:44 agmsmith Exp agmsmith $
+d25 3
+d45 16
+d62 3
+d71 1
+d75 1
+d77 8
+a84 2
+  unsigned int LockFrameBuffer ();
+  void UnlockFrameBuffer ();
+d93 1
+d95 1
+a95 1
+  void SetDisplayMessage (const char *StringPntr);
+d97 1
+a97 1
+    // the status of the server.
+d99 1
+a99 1
+  unsigned int UpdatePixelFormatEtc ();
+a106 4
+  class BDirectWindowReader *m_ReaderWindowPntr;
+    // Our BDirectWindow which is used for accessing the frame buffer.  NULL if
+    // it hasn't been created.
+
+d114 55
+@
+
+
+1.4
+log
+@Got it working, so you can now see the desktop in different
+video modes (except 8 bit).  Even lets you switch screens!
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.3 2004/06/07 01:06:50 agmsmith Exp agmsmith $
+d25 4
+d45 1
+a45 1
+class FrameBufferBeOS : public rfb::FrameBuffer
+a51 2
+  virtual void grabRect (const rfb::Rect &rect);
+  virtual void grabRegion (const rfb::Region &rgn);
+@
+
+
+1.3
+log
+@Starting to get the SDesktop working with the frame buffer
+and a BDirectWindow.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.2 2004/02/08 21:13:34 agmsmith Exp agmsmith $
+d25 4
+a37 57
+ * This variation of BDirectWindow allows us to capture the pixels on the
+ * screen.  It works by changing the window's size to cover the whole screen,
+ * then makes itself invisible (window borders off screen and background redraw
+ * set to non-draw transparent) and moves behind all other windows (so users
+ * can't click on it).  Then rather than the conventional use of a
+ * BDirectWindow where the application writes to the frame buffer memory
+ * directly, we just read it directly.
+ */
+
+class BDirectWindowReader : public BDirectWindow
+{
+public:
+  BDirectWindowReader ();
+  virtual ~BDirectWindowReader ();
+
+  virtual void DirectConnected (direct_buffer_info *ConnectionInfoPntr);
+    // Callback called by the OS when the video resolution changes or the frame
+    // buffer setup is otherwise changed.
+
+  unsigned int getPixelFormat (rfb::PixelFormat &pf);
+    // Converts the current screen resolution, bitmap pointer and other
+    // pixel layout information into a pixel format.  Returns the connection
+    // version number that was in force when the pixel format was retrieved.
+
+  bool m_Connected;
+    // TRUE if we are connected to the video memory, FALSE if not.  TRUE means
+    // that video memory has been mapped into this process's address space and
+    // we have a valid pointer to the frame buffer.  Don't try reading from
+    // video memory if this is FALSE!
+
+  unsigned int m_ConnectionVersion;
+    // A counter that is bumped up by one every time the connection changes.
+    // Makes it easy to see if your cached connection info is still valid.
+
+  BLocker m_ConnectionLock;
+    // This mutual exclusion lock makes sure that the callbacks from the OS to
+    // notify the window about frame buffer changes (usually a screen
+    // resolution change and the resulting change in frame buffer address and
+    // size) are mutually exclusive from other window operations (like reading
+    // the frame buffer or destroying the window).  Maximum lock time is 3
+    // seconds, then the OS might kill the program for not responding.
+
+  volatile bool m_DoNotConnect;
+    // A flag that the destructor sets to tell the rest of the window code not
+    // to try reconnecting to the frame buffer.
+
+  direct_buffer_info m_SavedFrameBufferInfo;
+      // A copy of the frame buffer information (bitmap address, video mode,
+      // screen size) from the last direct connection callback by the OS.  Only
+      // valid if m_Connected is true.  You should also lock m_ConnectionLock
+      // while reading information from this structure, so it doesn't change
+      // unexpectedly.
+};
+
+
+
+/******************************************************************************
+d51 16
+a66 2
+protected:
+  void UpdateToCurrentScreenBitmapSettings ();
+d68 4
+a71 1
+    // all up to date, matching the actual screen.
+d73 1
+@
+
+
+1.2
+log
+@BDirectWindow stuff under construction.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.1 2004/02/08 19:44:17 agmsmith Exp agmsmith $
+d25 3
+d34 57
+d100 1
+d102 6
+a108 1
+private:
+d112 8
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.3 2004/01/25 02:57:42 agmsmith Exp agmsmith $
+d24 3
+a26 1
+ * $Log: ServerMain.cxx,v $
+@

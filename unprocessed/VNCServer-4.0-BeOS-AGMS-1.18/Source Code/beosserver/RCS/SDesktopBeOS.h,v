@@ -1,0 +1,621 @@
+head	1.15;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.15
+date	2005.02.14.02.31.56;	author agmsmith;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2005.02.13.01.42.05;	author agmsmith;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2005.02.06.22.03.10;	author agmsmith;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2005.01.02.21.57.29;	author agmsmith;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2005.01.02.21.05.33;	author agmsmith;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2005.01.01.21.31.02;	author agmsmith;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2004.12.13.03.57.37;	author agmsmith;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2004.11.27.22.53.59;	author agmsmith;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2004.09.13.00.18.27;	author agmsmith;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2004.08.23.00.24.17;	author agmsmith;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2004.08.02.15.56.46;	author agmsmith;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2004.07.25.21.02.48;	author agmsmith;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2004.07.19.22.30.19;	author agmsmith;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2004.07.05.00.53.32;	author agmsmith;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.06.07.01.07.28;	author agmsmith;	state Exp;
+branches;
+next	;
+
+
+desc
+@The new SDesktop class for BeOS, which connects between the
+VNC server stuff and BeOS.
+@
+
+
+1.15
+log
+@Fake cursor drawing code added.
+@
+text
+@/******************************************************************************
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.14 2005/02/13 01:42:05 agmsmith Exp agmsmith $
+ *
+ * This is the static desktop glue implementation that holds the frame buffer
+ * and handles mouse messages, the clipboard and other BeOS things on one side,
+ * and talks to the VNC Server on the other side.
+ *
+ * Seems simple, but it shares the BDirectWindowReader with the frame buffer (a
+ * FrameBufferBeOS) and uses the BDirectWindowReader for part of its view into
+ * BeOS.  However, this static desktop is in charge - it creates the
+ * FrameBufferBeOS, which in turn creates the BDirectWindowReader.
+ *
+ * Copyright (C) 2004 by Alexander G. M. Smith.  All Rights Reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this software; if not, write to the Free Software Foundation, Inc., 59
+ * Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ * $Log: SDesktopBeOS.h,v $
+ * Revision 1.14  2005/02/13 01:42:05  agmsmith
+ * Can now receive clipboard text from the remote clients and
+ * put it on the BeOS clipboard.
+ *
+ * Revision 1.13  2005/02/06 22:03:10  agmsmith
+ * Changed to use the new BScreen reading method if the
+ * BDirectWindow one doesn't work.  Also removed the screen
+ * mode slow change with the yellow bar fake screen.
+ *
+ * Revision 1.12  2005/01/02 21:57:29  agmsmith
+ * Made the event injector simpler - only need one device, not
+ * separate ones for keyboard and mouse.  Also renamed it to
+ * InputEventInjector to be in line with it's more general use.
+ *
+ * Revision 1.11  2005/01/02 21:05:33  agmsmith
+ * Found screen resolution bug - wasn't testing the screen width
+ * or height to detect a change, just depth.  Along the way added
+ * some cool colour shifting animations on a fake screen.
+ *
+ * Revision 1.10  2005/01/01 21:31:02  agmsmith
+ * Added double click timing detection, so that you can now double
+ * click on a window title to minimize it.  Was missing the "clicks"
+ * field in mouse down BMessages.
+ *
+ * Revision 1.9  2004/12/13 03:57:37  agmsmith
+ * Combined functions for doing background update with grabbing the
+ * screen memory.  Also limit update size to at least 4 scan lines.
+ *
+ * Revision 1.8  2004/11/27 22:53:59  agmsmith
+ * Changed update technique to scan a small part of the screen each time
+ * so that big updates don't slow down the interactivity by being big.
+ * There is also an adaptive algorithm that makes the updates small
+ * enough to be quick on the average.
+ *
+ * Revision 1.7  2004/09/13 00:18:27  agmsmith
+ * Do updates separately, only based on the timer running out,
+ * so that other events all get processed first before the slow
+ * screen update starts.
+ *
+ * Revision 1.6  2004/08/23 00:24:17  agmsmith
+ * Added a search for plain keyboard keys, so now you can type text
+ * over VNC!  But funny key combinations likely won't work.
+ *
+ * Revision 1.5  2004/08/02 15:56:46  agmsmith
+ * Alphabetically ordered.
+ *
+ * Revision 1.4  2004/07/25 21:02:48  agmsmith
+ * Under construction - adding keycode simulation.
+ *
+ * Revision 1.3  2004/07/19 22:30:19  agmsmith
+ * Updated to work with VNC 4.0 source code (was 4.0 beta 4).
+ *
+ * Revision 1.2  2004/07/05 00:53:32  agmsmith
+ * Added mouse event handling - break down the network mouse event into
+ * individual BMessages for the different mouse things, including the
+ * mouse wheel.  Also add a forced refresh once in a while.
+ *
+ * Revision 1.1  2004/06/07 01:07:28  agmsmith
+ * Initial revision
+ */
+
+
+/******************************************************************************
+ * This is our main glue class for interfacing between VNC and BeOS.
+ */
+
+class SDesktopBeOS : public rfb::SDesktop
+{
+public:
+  SDesktopBeOS ();
+  virtual ~SDesktopBeOS ();
+
+  void BackgroundScreenUpdateCheck ();
+    // Checks for changes in a portion of the screen.  This gets called
+    // periodically by the server, around 100 times per second.  It sends the
+    // data for the changed part of the screen and also checks for a resolution
+    // change.  It has a dynamic algorithm which tries to make the updates
+    // small enough so that around 25 updates get done per second, including
+    // network transmission time.
+
+  virtual void clientCutText (const char* str, int len);
+    // The client has placed some new text on the clipboard.  Update the local
+    // clipboard to match it.
+
+  uint8 FindKeyCodeFromMap (int32 *MapOffsetArray, char *KeyAsString);
+    // Check all the keys in the given array of strings for each keycode to
+    // see if any contain the given UTF-8 string.  Returns zero if it can't
+    // find it.
+
+  virtual rfb::Point getFbSize ();
+    // getFbSize() returns the current dimensions of the framebuffer.
+    // This can be called even while the SDesktop is not start()ed.
+
+  virtual void keyEvent (rdr::U32 key, bool down);
+    // The remote user has pressed a key.
+
+  void MakeCheapCursor ();
+    // Recreates the cheap cursor image in the current pixel format
+    // then tells the server to use it.  Call after doing setPixelBuffer
+    // since that's when the server resets its internal cursor image to
+    // match the new screen depth.
+
+  virtual void pointerEvent (const rfb::Point& pos, rdr::U8 buttonmask);
+    // The remote user has moved the mouse or clicked a button.
+
+  void setServer (rfb::VNCServer *ServerPntr);
+    // Specifies the VNC server to use.  This is the thing which will parse VNC
+    // messages, handle network connections etc.
+
+  virtual void start (rfb::VNCServer* vs);
+    // start() is called by the server when the first client authenticates
+    // successfully, and can be used to begin any expensive tasks which are not
+    // needed when there are no clients.  A valid PixelBuffer must have been
+    // set via the VNCServer's setPixelBuffer() method by the time this call
+    // returns.
+
+  virtual void stop ();
+    // stop() is called by the server when there are no longer any
+    // authenticated clients, and therefore the desktop can cease any expensive
+    // tasks.
+
+  void SendUnmappedKeys (key_info &OldKeyState, key_info &NewKeyState);
+    // Sends B_UNMAPPED_KEY_UP or B_UNMAPPED_KEY_DOWN messages for all keys
+    // that have changed between the old and new states.
+
+  void UpdateDerivedModifiersAndPressedModifierKeys (key_info &KeyState);
+    // Looks at the modifier flags for individual modifier keys (left and right
+    // control, L&R shift, etc) and sets the derived modifier flags (plain
+    // control, plain shift, etc) to match.  Then it updates the keyboard bits
+    // to show the corresponding buttons being pressed down or up (using the
+    // previously obtained keymap).
+
+protected:
+  int m_BackgroundNextScanLineY;
+    // When doing incremental updates of the screen, m_BackgroundNextScanLineY
+    // identifies the next scan line to start checking for changes to the
+    // screen.  If its out of range then a new full screen update is started.
+
+  int m_BackgroundNumberOfScanLinesPerUpdate;
+    // This many scan lines are read from the screen to see if they have
+    // changed.  The number varies depending on the current perfomance,
+    // adjusted at the end of every full screen scan to make the typical update
+    // take only 1/100 of a second.  Minimum value 1, maximum is the height of
+    // the screen.
+
+  bigtime_t m_BackgroundUpdateStartTime;
+    // The system clock at the moment the next full screen scan is started.
+    // Used at the end of the full screen to evaluate performance and help
+    // adjust m_BackgroundNumberOfScanLinesPerUpdate.
+
+  bigtime_t m_DoubleClickTimeLimit;
+    // The time in microseconds when a second mouse click counts as a double
+    // click rather than a single click.  Grabbed from the OS preferences when
+    // the desktop starts up.
+
+  BInputDevice *m_EventInjectorPntr;
+    // Gives access to our Input Server add-on which lets us inject mouse and
+    // keyboard event messages.  NULL if the connection isn't open or isn't
+    // available.  Connected when the desktop starts, disconnected when it
+    // stops.
+
+  class FrameBufferBeOS *m_FrameBufferBeOSPntr;
+    // Our FrameBufferBeOS instance and the associated BDirectWindowReader
+    // (which may or may not exist) which is used for accessing the frame
+    // buffer.  NULL if it hasn't been created.
+
+  char    *m_KeyCharStrings;
+  key_map *m_KeyMapPntr;
+    // NULL if not in use, otherwise they point to our copy (call free() when
+    // done) of the keyboard mapping strings and tables that convert keyboard
+    // scan codes into UTF-8 strings and various other keyboard mode
+    // operations.  We actually use the tables in reverse to figure out which
+    // buttons to press.  The keymap is copied from the current active one when
+    // the desktop starts, so it doesn't reflect changes to the keymap while it
+    // is running.
+
+  key_info m_LastKeyState;
+    // Identifies which of the 127 keys are currently being held down on the
+    // imaginary ghost of the user's keyboard (using the current keymap to
+    // figure out which keys do what).  Also remembers the modifier modes (caps
+    // lock etc) last in use.
+
+  rdr::U8 m_LastMouseButtonState;
+    // The mouse buttons from the last remote mouse update.  Needed since
+    // we have to convert the mouse events into up, down and moved events.
+
+  unsigned int m_LastMouseDownCount;
+  bigtime_t m_LastMouseDownTime;
+  	// These two member variables help detect double clicks.  The time stamp is
+  	// the time when the mouse was previously clicked down.  If the next click
+  	// comes within the user's prefered mouse double click time then we count
+  	// it as a double click, and increment m_LastMouseDownCount, which gets
+  	// included in the mouse down message (but not the up one).  Otherwise it
+  	// is a single click and m_LastMouseDownCount gets reset to 1.
+
+  float m_LastMouseX;
+  float m_LastMouseY;
+    // Last absolute (0.0 to 1.0) mouse position reported to BeOS.  Needed so
+    // that we can avoid sending redundant mouse moved messages, particularly
+    // if the user is moving the mouse wheel or just pressing buttons.
+
+  rfb::VNCServer *m_ServerPntr;
+    // Identifies our server, which we can tell about our frame buffer and
+    // other changes.  NULL if it hasn't been set yet.
+};
+@
+
+
+1.14
+log
+@Can now receive clipboard text from the remote clients and
+put it on the BeOS clipboard.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.13 2005/02/06 22:03:10 agmsmith Exp agmsmith $
+d30 4
+d125 6
+@
+
+
+1.13
+log
+@Changed to use the new BScreen reading method if the
+BDirectWindow one doesn't work.  Also removed the screen
+mode slow change with the yellow bar fake screen.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.12 2005/01/02 21:57:29 agmsmith Exp agmsmith $
+d30 5
+d105 4
+@
+
+
+1.12
+log
+@Made the event injector simpler - only need one device, not
+separate ones for keyboard and mouse.  Also renamed it to
+InputEventInjector to be in line with it's more general use.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.11 2005/01/02 21:05:33 agmsmith Exp agmsmith $
+d30 5
+a214 17
+
+  rfb::ManagedPixelBuffer m_TemporaryBitmap;
+    // A small 16 by 16 pixel by 8 bits true colour bitmap that is used when
+    // the main bitmap has changed, instead of the main screen, so that VNC
+    // notices that the screen has changed.
+
+  int m_UpdateCount;
+    // Number of updates which have gone by safely.  We need a few when
+    // switching video modes to make sure that the other end has received all
+    // the data about the temporary bitmap.
+
+  enum UpdatesEnum {UPDATE_NORMAL = 0, UPDATE_SHOWING_TEMPORARY, UPDATE_MAX}
+    m_UpdateMode;
+    // Controls which bitmap is displayed by the desktop.  When the screen
+    // mode changes, we show the temporary bitmap for a little while until
+    // VNC has sent out the codes for changing video modes, before we let it
+    // resume displaying real data.
+@
+
+
+1.11
+log
+@Found screen resolution bug - wasn't testing the screen width
+or height to detect a change, just depth.  Along the way added
+some cool colour shifting animations on a fake screen.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.10 2005/01/01 21:31:02 agmsmith Exp agmsmith $
+d30 5
+d161 6
+a170 7
+
+  BInputDevice *m_InputDeviceKeyboardPntr;
+  BInputDevice *m_InputDeviceMousePntr;
+    // Gives access to our Input Server add-on which lets us inject mouse and
+    // keyboard event messages.  NULL if the connection isn't open or isn't
+    // available.  Connected when the desktop starts, disconnected when it
+    // stops.
+@
+
+
+1.10
+log
+@Added double click timing detection, so that you can now double
+click on a window title to minimize it.  Was missing the "clicks"
+field in mouse down BMessages.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.9 2004/12/13 03:57:37 agmsmith Exp agmsmith $
+d30 5
+d206 17
+@
+
+
+1.9
+log
+@Combined functions for doing background update with grabbing the
+screen memory.  Also limit update size to at least 4 scan lines.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.8 2004/11/27 22:53:59 agmsmith Exp agmsmith $
+d30 4
+d80 1
+a80 1
+    // periodically by the server, at most 100 times per second.  It sends the
+d83 1
+a83 1
+    // small enough so that around 50 updates get done per second, including
+d146 5
+d182 9
+@
+
+
+1.8
+log
+@Changed update technique to scan a small part of the screen each time
+so that big updates don't slow down the interactivity by being big.
+There is also an adaptive algorithm that makes the updates small
+enough to be quick on the average.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.7 2004/09/13 00:18:27 agmsmith Exp agmsmith $
+d30 6
+d76 5
+a80 4
+    // periodically by the server, at most 100 times per second.  It has a
+    // dynamic algorithm which tries to make the updates small enough so that
+    // around 50 updates get done per second, including network transmission
+    // time.
+a81 4
+  void SendScreenUpdateData ();
+    // Sends the data for the changed part of the screen and also checks for a
+    // resolution change.
+  
+@
+
+
+1.7
+log
+@Do updates separately, only based on the timer running out,
+so that other events all get processed first before the slow
+screen update starts.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.6 2004/08/23 00:24:17 agmsmith Exp agmsmith $
+d30 5
+d68 10
+a77 3
+  void DoScreenUpdate ();
+    // Does the actual screen update.  Just invalidates the whole screen
+    // area in the server's bitmap thingy.
+a83 10
+  void forcedUpdateCheck ();
+    // Checks if it is time for a forced update, and does it if needed.  This
+    // gets called periodically by the server.
+
+  virtual void framebufferUpdateRequest ();
+    // framebufferUpdateRequest() is called to let the desktop know that at
+    // least one client has become ready for an update.  Desktops can check
+    // whether there are clients ready at any time by calling the VNCServer's
+    // clientsReadyForUpdate() method.
+
+d122 17
+a175 5
+
+  bigtime_t m_NextForcedUpdateTime;
+    // When the system clock reaches this time, do a full screen refresh.
+    // Needed to awaken dead clients, that seem to stop updating once a button
+    // is pressed.  It is normally some time in the future.
+@
+
+
+1.6
+log
+@Added a search for plain keyboard keys, so now you can type text
+over VNC!  But funny key combinations likely won't work.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.5 2004/08/02 15:56:46 agmsmith Exp agmsmith $
+d30 4
+d63 4
+@
+
+
+1.5
+log
+@Alphabetically ordered.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.4 2004/07/25 21:02:48 agmsmith Exp agmsmith $
+d30 3
+d58 5
+@
+
+
+1.4
+log
+@Under construction - adding keycode simulation.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.3 2004/07/19 22:30:19 agmsmith Exp agmsmith $
+d30 3
+d56 20
+d92 3
+a94 19
+  virtual void framebufferUpdateRequest ();
+    // framebufferUpdateRequest() is called to let the desktop know that at
+    // least one client has become ready for an update.  Desktops can check
+    // whether there are clients ready at any time by calling the VNCServer's
+    // clientsReadyForUpdate() method.
+
+  void forcedUpdateCheck ();
+    // Checks if it is time for a forced update, and does it if needed.  This
+    // gets called periodically by the server.
+
+  virtual rfb::Point getFbSize ();
+    // getFbSize() returns the current dimensions of the framebuffer.
+    // This can be called even while the SDesktop is not start()ed.
+
+  virtual void pointerEvent (const rfb::Point& pos, rdr::U8 buttonmask);
+    // The remote user has moved the mouse or clicked a button.
+
+  virtual void keyEvent (rdr::U32 key, bool down);
+    // The remote user has pressed a key.
+@
+
+
+1.3
+log
+@Updated to work with VNC 4.0 source code (was 4.0 beta 4).
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.2 2004/07/05 00:53:32 agmsmith Exp agmsmith $
+d30 3
+d89 7
+d108 16
+@
+
+
+1.2
+log
+@Added mouse event handling - break down the network mouse event into
+individual BMessages for the different mouse things, including the
+mouse wheel.  Also add a forced refresh once in a while.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/SDesktopBeOS.h,v 1.1 2004/06/07 01:07:28 agmsmith Exp agmsmith $
+d30 5
+d54 1
+a54 1
+  virtual void start ();
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/FrameBufferBeOS.h,v 1.2 2004/02/08 21:13:34 agmsmith Exp agmsmith $
+d29 3
+a31 1
+ * $Log: FrameBufferBeOS.h,v $
+d67 4
+d75 6
+d86 22
+@

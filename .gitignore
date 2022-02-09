@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# CVS stuff
+CVS/ 
+
+# macOS stuff
+.DS_Store

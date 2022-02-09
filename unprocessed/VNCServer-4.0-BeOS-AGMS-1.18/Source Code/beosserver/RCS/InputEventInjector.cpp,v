@@ -1,0 +1,322 @@
+head	1.3;
+access;
+symbols;
+locks; strict;
+comment	@// @;
+
+
+1.3
+date	2005.01.02.21.57.29;	author agmsmith;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2004.09.13.00.01.26;	author agmsmith;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.07.04.20.25.28;	author agmsmith;	state Exp;
+branches;
+next	;
+
+
+desc
+@An add-on for the Input Server which lets us inject
+events for mouse and keyboard, from VNC.
+@
+
+
+1.3
+log
+@Made the event injector simpler - only need one device, not
+separate ones for keyboard and mouse.  Also renamed it to
+InputEventInjector to be in line with it's more general use.
+@
+text
+@/******************************************************************************
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/InputEventInjector.cpp,v 1.2 2004/09/13 00:01:26 agmsmith Exp agmsmith $
+ *
+ * This is the add-in (shared .so library for BeOS) which injects keyboard and
+ * mouse events into the BeOS InputServer, letting the remote system move the
+ * mouse and simulate keyboard button presses.
+ *
+ * Put the shared library file created by this project (its default name is
+ * "InputEventInjector") into /boot/home/config/add-ons/input_server/devices
+ * to install it.
+ *
+ * It registers itself as a keyboard device with the InputServer, though it can
+ * inject any kind of message, including mouse ones.  It also receives messages
+ * from other programs using the BInputDevice Control system, and then copies
+ * and forwards those messages to the InputServer.  So it could be used by
+ * other programs than VNC, if desired.
+ *
+ * Copyright (C) 2004 by Alexander G. M. Smith.  All Rights Reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this software; if not, write to the Free Software Foundation, Inc., 59
+ * Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ * $Log: InputEventInjector.cpp,v $
+ * Revision 1.2  2004/09/13 00:01:26  agmsmith
+ * Added installation instructions and a version string.
+ *
+ * Revision 1.1  2004/07/04 20:25:28  agmsmith
+ * Initial revision
+ */
+
+/* BeOS (Be Operating System) headers. */
+
+#include <InputServerDevice.h>
+
+
+/* POSIX headers. */
+
+#include <stdio.h>
+
+
+/******************************************************************************
+ * Global variables, and not-so-variable things too.  Grouped by functionality.
+ */
+
+extern "C" _EXPORT BInputServerDevice* instantiate_input_device (void);
+
+const char InputEventInjectorVersionString [] =
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/InputEventInjector.cpp,v 1.2 2004/09/13 00:01:26 agmsmith Exp agmsmith $";
+
+static struct input_device_ref FakeKeyboardLink =
+{
+  "InputEventInjector FakeKeyboard", // Max 31 characters to be safe.
+  B_KEYBOARD_DEVICE,
+  (void *) 76543210 /* cookie */
+};
+
+static struct input_device_ref *RegistrationRefList [2] =
+{
+  &FakeKeyboardLink,
+  NULL
+};
+
+
+
+/******************************************************************************
+ * The main class, does just about everything.
+ */
+
+class InputEventInjector : public BInputServerDevice
+{
+public:
+  InputEventInjector ();
+  virtual ~InputEventInjector ();
+  virtual status_t InitCheck ();
+  virtual status_t Start (const char *device, void *cookie);
+  virtual status_t Stop (const char *device, void *cookie);
+  virtual status_t Control (
+    const char *device, void *cookie, uint32 code, BMessage *message);
+
+protected:
+  bool m_KeyboardEnabled;
+};
+
+
+InputEventInjector::InputEventInjector ()
+: m_KeyboardEnabled (false)
+{
+}
+
+
+InputEventInjector::~InputEventInjector ()
+{
+}
+
+
+status_t InputEventInjector::InitCheck ()
+{
+  RegisterDevices (RegistrationRefList);
+
+  return B_OK;
+}
+
+
+status_t InputEventInjector::Start (const char *device, void *cookie)
+{
+  if ((int) cookie == 76543210)
+    m_KeyboardEnabled = true;
+  else
+    return B_ERROR;
+
+  return B_OK;
+}
+
+
+status_t InputEventInjector::Stop (const char *device, void *cookie)
+{
+  if ((int) cookie == 76543210)
+    m_KeyboardEnabled = false;
+  else
+    return B_ERROR;
+
+  return B_OK;
+}
+
+
+status_t InputEventInjector::Control (
+  const char *device,
+  void *cookie,
+  uint32 code,
+  BMessage *message)
+{
+  BMessage *EventMsgPntr = NULL;
+
+  if ((int) cookie == 76543210)
+  {
+    if (m_KeyboardEnabled && code == 'EInj' && message != NULL)
+    {
+      EventMsgPntr = new BMessage (*message);
+      return EnqueueMessage (EventMsgPntr);
+    }
+  }
+  else
+    return B_ERROR;
+
+  return B_OK;
+}
+
+
+
+BInputServerDevice* instantiate_input_device (void)
+{
+  return new InputEventInjector;
+}
+@
+
+
+1.2
+log
+@Added installation instructions and a version string.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/VNCAppServerInterface.cpp,v 1.1 2004/07/04 20:25:28 agmsmith Exp agmsmith $
+d9 1
+a9 1
+ * "VNCAppServerInterface") into /boot/home/config/add-ons/input_server/devices
+d12 5
+a16 5
+ * It registers itself as a keyboard device and a mouse device with the
+ * InputServer.  It also receives messages from other programs using the
+ * BInputDevice Control system, and then copies and forwards those messages to
+ * the InputServer.  So it could be used by other programs than VNC, if
+ * desired.
+d34 4
+a37 1
+ * $Log: VNCAppServerInterface.cpp,v $
+d58 2
+a59 1
+const char VNCAppServerInterfaceVersionString [] = "$Header: $";
+d63 1
+a63 1
+  "VNC Fake Keyboard",
+d65 1
+a65 1
+  (void *) 1 /* cookie */
+d68 1
+a68 8
+static struct input_device_ref FakeMouseLink =
+{
+  "VNC Fake Mouse",
+  B_POINTING_DEVICE,
+  (void *) 2 /* cookie */
+};
+
+static struct input_device_ref *RegistrationRefList [3] =
+a70 1
+  &FakeMouseLink,
+d80 1
+a80 1
+class VNCAppServerInterface : public BInputServerDevice
+d83 2
+a84 2
+  VNCAppServerInterface ();
+  virtual ~VNCAppServerInterface ();
+a92 1
+  bool m_MouseEnabled;
+d96 2
+a97 2
+VNCAppServerInterface::VNCAppServerInterface ()
+: m_KeyboardEnabled (false), m_MouseEnabled (false)
+d102 1
+a102 1
+VNCAppServerInterface::~VNCAppServerInterface ()
+d107 1
+a107 1
+status_t VNCAppServerInterface::InitCheck ()
+d115 1
+a115 1
+status_t VNCAppServerInterface::Start (const char *device, void *cookie)
+d117 1
+a117 1
+  if ((int) cookie == 1)
+a118 2
+  else if ((int) cookie == 2)
+    m_MouseEnabled = true;
+d126 1
+a126 1
+status_t VNCAppServerInterface::Stop (const char *device, void *cookie)
+d128 1
+a128 1
+  if ((int) cookie == 1)
+a129 2
+  else if ((int) cookie == 2)
+    m_MouseEnabled = false;
+d137 1
+a137 1
+status_t VNCAppServerInterface::Control (
+d145 1
+a145 9
+  if ((int) cookie == 1)
+  {
+    if (m_KeyboardEnabled && code == 'ViNC' && message != NULL)
+    {
+      EventMsgPntr = new BMessage (*message);
+      return EnqueueMessage (EventMsgPntr);
+    }
+  }
+  else if ((int) cookie == 2)
+d147 1
+a147 1
+    if (m_MouseEnabled && code == 'ViNC' && message != NULL)
+d163 1
+a163 1
+  return new VNCAppServerInterface;
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/SDesktopBeOS.cxx,v 1.2 2004/06/27 20:31:44 agmsmith Exp $
+d8 4
+d15 2
+a16 1
+ * the InputServer.
+d34 3
+a36 1
+ * $Log: SDesktopBeOS.cxx,v $
+d55 1
+@

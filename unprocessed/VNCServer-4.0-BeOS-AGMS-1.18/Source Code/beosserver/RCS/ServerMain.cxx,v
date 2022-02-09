@@ -1,0 +1,1363 @@
+head	1.19;
+access;
+symbols;
+locks; strict;
+comment	@// @;
+
+
+1.19
+date	2005.02.27.17.16.36;	author agmsmith;	state Exp;
+branches;
+next	1.18;
+
+1.18
+date	2005.02.14.02.29.56;	author agmsmith;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	2005.02.13.01.28.44;	author agmsmith;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	2005.02.06.23.39.14;	author agmsmith;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	2005.01.03.00.19.50;	author agmsmith;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2005.01.02.21.09.46;	author agmsmith;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2004.12.12.21.44.39;	author agmsmith;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2004.12.05.23.40.04;	author agmsmith;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2004.11.27.22.53.12;	author agmsmith;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2004.11.22.02.40.40;	author agmsmith;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2004.09.13.01.41.53;	author agmsmith;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2004.07.19.22.30.19;	author agmsmith;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2004.07.05.00.53.07;	author agmsmith;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2004.06.27.20.31.44;	author agmsmith;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2004.06.07.01.06.50;	author agmsmith;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2004.02.08.19.43.57;	author agmsmith;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2004.01.25.02.57.42;	author agmsmith;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2004.01.11.00.55.42;	author agmsmith;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.01.03.02.32.55;	author agmsmith;	state Exp;
+branches;
+next	;
+
+
+desc
+@The main program for the Virtual Network Computing server, that lets
+you remotely see your screen and use a remote mouse and keyboard.
+@
+
+
+1.19
+log
+@Standard STL STD namespace hack for PPC.
+@
+text
+@/******************************************************************************
+ * $Header: /CommonPPC/agmsmith/VNCServer-4.0-BeOS-AGMS-1.18/Source\040Code/beosserver/RCS/ServerMain.cxx,v 1.18 2005/02/14 02:29:56 agmsmith Exp agmsmith $
+ *
+ * This is the main program for the BeOS version of the VNC server.  The basic
+ * functionality comes from the VNC 4.0b4 source code (available from
+ * http://www.realvnc.com/), with BeOS adaptations by Alexander G. M. Smith.
+ *
+ * Copyright (C) 2004 by Alexander G. M. Smith.  All Rights Reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this software; if not, write to the Free Software Foundation, Inc., 59
+ * Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *
+ * $Log: ServerMain.cxx,v $
+ * Revision 1.18  2005/02/14 02:29:56  agmsmith
+ * Removed unused parameters - HTTP servers and host wildcards.
+ *
+ * Revision 1.17  2005/02/13 01:28:44  agmsmith
+ * Now notices clipboard changes and informs all the clients
+ * about the new text contents.
+ *
+ * Revision 1.16  2005/02/06 23:39:14  agmsmith
+ * Bumpped version number.
+ *
+ * Revision 1.15  2005/01/03 00:19:50  agmsmith
+ * Based on more recent source than 4.0 Beta 4, update
+ * comments to show that it's the final 4.0 VNC source.
+ *
+ * Revision 1.14  2005/01/02 21:09:46  agmsmith
+ * Bump the version number.
+ *
+ * Revision 1.13  2004/12/12 21:44:39  agmsmith
+ * Remove dead event loop timer, it does get stuck for long times
+ * when the network connection is down.
+ *
+ * Revision 1.12  2004/12/05 23:40:04  agmsmith
+ * Change timing system to use the event loop rather than a
+ * separate thread.  Didn't fix the memory crash bug when
+ * switching screen resolution - so it's not stack size or
+ * multithreading.
+ *
+ * Revision 1.11  2004/11/27 22:53:12  agmsmith
+ * Oops, forgot about the network time delay for new data.  Make it shorter
+ * so that the overall update loop is faster.
+ *
+ * Revision 1.10  2004/11/22 02:40:40  agmsmith
+ * Changed from Pulse() timing to using a separate thread, so now
+ * mouse clicks and other time sensitive responses are much more
+ * accurate (1/60 second accuracy at best).
+ *
+ * Revision 1.9  2004/09/13 01:41:53  agmsmith
+ * Update rate time limits now in the desktop module.
+ *
+ * Revision 1.8  2004/07/19 22:30:19  agmsmith
+ * Updated to work with VNC 4.0 source code (was 4.0 beta 4).
+ *
+ * Revision 1.7  2004/07/05 00:53:07  agmsmith
+ * Check for a forced update too.
+ *
+ * Revision 1.6  2004/06/27 20:31:44  agmsmith
+ * Got it working, so you can now see the desktop in different
+ * video modes (except 8 bit).  Even lets you switch screens!
+ *
+ * Revision 1.5  2004/06/07 01:06:50  agmsmith
+ * Starting to get the SDesktop working with the frame buffer
+ * and a BDirectWindow.
+ *
+ * Revision 1.4  2004/02/08 19:43:57  agmsmith
+ * FrameBuffer class under construction.
+ *
+ * Revision 1.3  2004/01/25 02:57:42  agmsmith
+ * Removed loading and saving of settings, just specify the command line
+ * options every time it is activated.
+ *
+ * Revision 1.2  2004/01/11 00:55:42  agmsmith
+ * Added network initialisation and basic server code.  Now accepts incoming
+ * connections!  But doesn't display a black remote screen yet.
+ *
+ * Revision 1.1  2004/01/03 02:32:55  agmsmith
+ * Initial revision
+ */
+
+/* Posix headers. */
+
+#include <errno.h>
+#include <socket.h>
+
+#include <list>
+namespace std {
+        int ___foobar___;
+}
+#define std
+
+/* VNC library headers. */
+
+#include <network/TcpSocket.h>
+#include <rfb/Logger_stdio.h>
+#include <rfb/LogWriter.h>
+#include <rfb/SSecurityFactoryStandard.h>
+#include <rfb/VNCServerST.h>
+
+/* BeOS (Be Operating System) headers. */
+
+#include <Alert.h>
+#include <Application.h>
+#include <Clipboard.h>
+#include <DirectWindow.h>
+#include <Locker.h>
+
+/* Our source code */
+
+#include "SDesktopBeOS.h"
+
+
+
+/******************************************************************************
+ * Global variables, and not-so-variable things too.  Grouped by functionality.
+ */
+
+static const unsigned int MSG_DO_POLLING_STEP = 'VPol';
+  /* The message code for the BMessage which triggers a polling code to check a
+  slice of the screen for changes.  The BMessage doesn't have any data, and is
+  sent when the polling work is done, so that the next polling task is
+  triggered almost immedately. */
+
+static const char *g_AppSignature =
+  "application/x-vnd.agmsmith.vncserver";
+
+static const char *g_AboutText =
+  "VNC Server for BeOS, based on VNC 4.0\n"
+  "Adapted for BeOS by Alexander G. M. Smith\n"
+  "$Header: /CommonPPC/agmsmith/VNCServer-4.0-BeOS-AGMS-1.18/Source\040Code/beosserver/RCS/ServerMain.cxx,v 1.18 2005/02/14 02:29:56 agmsmith Exp agmsmith $\n"
+  "Compiled on " __DATE__ " at " __TIME__ ".";
+
+static rfb::LogWriter vlog("ServerMain");
+
+static rfb::IntParameter port_number("PortNumber",
+  "TCP/IP port on which the server will accept connections",
+  5900);
+
+static rfb::VncAuthPasswdFileParameter vncAuthPasswd;
+  // Creating this object is enough to register it with the
+  // SSecurityFactoryStandard class system, specifying that we
+  // store passwords in a file.
+
+
+
+/******************************************************************************
+ * ServerApp is the top level class for this program.  This handles messages
+ * from the outside world and does some of the processing.  It also has
+ * pointers to important data structures, like the VNC server stuff, or the
+ * desktop (screen buffer access thing).
+ */
+
+class ServerApp : public BApplication
+{
+public: /* Constructor and destructor. */
+  ServerApp ();
+  ~ServerApp ();
+
+  /* BeOS virtual functions. */
+  virtual void AboutRequested ();
+  virtual void MessageReceived (BMessage *MessagePntr);
+  virtual void Pulse ();
+  virtual bool QuitRequested ();
+  virtual void ReadyToRun ();
+
+  /* Our class methods. */
+  void PollNetwork ();
+
+public: /* Member variables. */
+  SDesktopBeOS *m_FakeDesktopPntr;
+    /* Provides access to the frame buffer, mouse, etc for VNC to use. */
+
+  bigtime_t m_TimeOfLastBackgroundUpdate;
+    /* The server main loop updates this with the current time whenever it
+    finishes an update (checking for network input and optionally sending a
+    sliver of the screen to the client).  If a long time goes by without an
+    update, the pulse thread will inject a new BMessage, just in case the chain
+    of update BMessages was broken. */
+
+  network::TcpListener *m_TcpListenerPntr;
+    /* A socket that listens for incoming connections. */
+
+  rfb::VNCServerST *m_VNCServerPntr;
+    /* A lot of the pre-made message processing logic is in this object. */
+};
+
+
+
+/******************************************************************************
+ * Implementation of the ServerApp class.  Constructor, destructor and the rest
+ * of the member functions in mostly alphabetical order.
+ */
+
+ServerApp::ServerApp ()
+: BApplication (g_AppSignature),
+  m_FakeDesktopPntr (NULL),
+  m_TimeOfLastBackgroundUpdate (0),
+  m_TcpListenerPntr (NULL),
+  m_VNCServerPntr (NULL)
+{
+}
+
+
+ServerApp::~ServerApp ()
+{
+  // Deallocate our main data structures.
+
+  delete m_TcpListenerPntr;
+  delete m_VNCServerPntr;
+  delete m_FakeDesktopPntr;
+}
+
+
+/* Display a box showing information about this program. */
+
+void ServerApp::AboutRequested ()
+{
+  BAlert *AboutAlertPntr;
+
+  AboutAlertPntr = new BAlert ("About", g_AboutText, "Done");
+  if (AboutAlertPntr != NULL)
+  {
+    AboutAlertPntr->SetShortcut (0, B_ESCAPE);
+    AboutAlertPntr->Go ();
+  }
+}
+
+
+void ServerApp::MessageReceived (BMessage *MessagePntr)
+{
+  if (MessagePntr->what == MSG_DO_POLLING_STEP)
+    PollNetwork ();
+  else if (MessagePntr->what == B_CLIPBOARD_CHANGED)
+  {
+    BMessage   *ClipMsgPntr;
+    int32       TextLength;
+    const char *TextPntr;
+
+    if (m_VNCServerPntr != NULL && be_clipboard->Lock())
+    {
+      if ((ClipMsgPntr = be_clipboard->Data ()) != NULL)
+      {
+        TextPntr = NULL;
+        ClipMsgPntr->FindData ("text/plain", B_MIME_TYPE,
+          (const void **) &TextPntr, &TextLength);
+        if (TextPntr != NULL)
+          m_VNCServerPntr->serverCutText (TextPntr, TextLength);
+      }
+      be_clipboard->Unlock ();
+    }
+  }
+  else
+    /* Pass the unprocessed message to the inherited function, maybe it knows
+    what to do.  This includes replies to messages we sent ourselves. */
+    BApplication::MessageReceived (MessagePntr);
+}
+
+
+void ServerApp::PollNetwork ()
+{
+  if (m_VNCServerPntr == NULL)
+    return;
+
+  try
+  {
+    fd_set         rfds;
+    struct timeval tv;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 5000; // Time delay in millionths of a second, keep short.
+
+    FD_ZERO(&rfds);
+    FD_SET(m_TcpListenerPntr->getFd(), &rfds);
+
+    std::list<network::Socket*> sockets;
+    m_VNCServerPntr->getSockets(&sockets);
+    std::list<network::Socket*>::iterator iter;
+    for (iter = sockets.begin(); iter != sockets.end(); iter++)
+      FD_SET((*iter)->getFd(), &rfds);
+
+    int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
+    if (n < 0) throw rdr::SystemException("select",errno);
+
+    for (iter = sockets.begin(); iter != sockets.end(); iter++) {
+      if (FD_ISSET((*iter)->getFd(), &rfds)) {
+        m_VNCServerPntr->processSocketEvent(*iter);
+      }
+    }
+
+    if (FD_ISSET(m_TcpListenerPntr->getFd(), &rfds)) {
+      network::Socket* sock = m_TcpListenerPntr->accept();
+      m_VNCServerPntr->addClient(sock);
+    }
+
+    m_VNCServerPntr->checkTimeouts();
+
+    // Run the background scan of the screen for changes, but only when an
+    // update is requested.  Otherwise the update timing feedback system won't
+    // work correctly (bursts of ridiculously high frame rates when the client
+    // isn't asking for a new update).
+
+    if (m_VNCServerPntr->clientsReadyForUpdate ())
+      m_FakeDesktopPntr->BackgroundScreenUpdateCheck ();
+
+    // Trigger the next update pretty much immediately, after other intervening
+    // messages have been processed.
+
+    PostMessage (MSG_DO_POLLING_STEP);
+    m_TimeOfLastBackgroundUpdate = system_time ();
+  }
+  catch (rdr::Exception &e)
+  {
+    vlog.error(e.str());
+  }
+}
+
+
+void ServerApp::Pulse ()
+{
+  if (m_TimeOfLastBackgroundUpdate == 0)
+  {
+    vlog.debug ("ServerApp::Pulse: Starting up the BMessage timing cycle.");
+    m_TimeOfLastBackgroundUpdate = system_time ();
+    PostMessage (MSG_DO_POLLING_STEP);
+  }
+}
+
+
+/* A quit request message has come in. */
+
+bool ServerApp::QuitRequested ()
+{
+  be_clipboard->StopWatching (be_app_messenger);
+  return BApplication::QuitRequested ();
+}
+
+
+void ServerApp::ReadyToRun ()
+{
+  try
+  {
+    /* VNC Setup. */
+
+    m_FakeDesktopPntr = new SDesktopBeOS ();
+
+    m_VNCServerPntr = new rfb::VNCServerST ("MyBeOSVNCServer",
+      m_FakeDesktopPntr, NULL);
+
+    m_FakeDesktopPntr->setServer (m_VNCServerPntr);
+
+    network::TcpSocket::initTcpSockets();
+    m_TcpListenerPntr = new network::TcpListener ((int)port_number);
+    vlog.info("Listening on port %d", (int)port_number);
+
+    be_clipboard->StartWatching (be_app_messenger);
+
+    SetPulseRate (3000000); // Deadman timer checks every 3 seconds.
+  }
+  catch (rdr::Exception &e)
+  {
+    vlog.error(e.str());
+    PostMessage (B_QUIT_REQUESTED);
+  }
+}
+
+
+// Display the program usage info, then terminate the program.
+
+static void usage (const char *programName)
+{
+  fprintf(stderr, g_AboutText);
+  fprintf(stderr, "\n\nusage: %s [<parameters>]\n", programName);
+  fprintf(stderr,"\n"
+    "Parameters can be turned on with -<param> or off with -<param>=0\n"
+    "Parameters which take a value can be specified as "
+    "-<param> <value>\n"
+    "Other valid forms are <param>=<value> -<param>=<value> "
+    "--<param>=<value>\n"
+    "Parameter names are case-insensitive.  The parameters are:\n\n");
+  rfb::Configuration::listParams(79, 14);
+  exit(1);
+}
+
+
+
+/******************************************************************************
+ * Finally, the main program which drives it all.
+ */
+
+int main (int argc, char** argv)
+{
+  ServerApp MyApp;
+  int       ReturnCode = 0;
+
+  if (MyApp.InitCheck () != B_OK)
+  {
+    vlog.error("Unable to initialise BApplication.");
+    return -1;
+  }
+
+  try {
+    rfb::initStdIOLoggers();
+    rfb::LogWriter::setLogParams("*:stderr:1000");
+      // Normal level is 30, use 1000 for debug messages.
+
+    // Override the default parameters with new values from the command line.
+    // Display the usage message and exit the program if an unknown parameter
+    // is encountered.
+
+    for (int i = 1; i < argc; i++) {
+      if (argv[i][0] == '-') {
+        if (rfb::Configuration::setParam(argv[i]))
+          continue;
+        if (i+1 < argc) {
+          if (rfb::Configuration::setParam(&argv[i][1], argv[i+1])) {
+            i++;
+            continue;
+          }
+        }
+        usage(argv[0]);
+      }
+      if (rfb::Configuration::setParam(argv[i]))
+        continue;
+      usage(argv[0]);
+    }
+
+    MyApp.Run (); // Run the main event loop.
+    ReturnCode = 0;
+  }
+  catch (rdr::SystemException &s) {
+    vlog.error(s.str());
+    ReturnCode = s.err;
+  } catch (rdr::Exception &e) {
+    vlog.error(e.str());
+    ReturnCode = -1;
+  }
+
+  return ReturnCode;
+}
+@
+
+
+1.18
+log
+@Removed unused parameters - HTTP servers and host wildcards.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.17 2005/02/13 01:28:44 agmsmith Exp agmsmith $
+d25 3
+d98 6
+d142 1
+a142 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.17 2005/02/13 01:28:44 agmsmith Exp agmsmith $\n"
+@
+
+
+1.17
+log
+@Now notices clipboard changes and informs all the clients
+about the new text contents.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.16 2005/02/06 23:39:14 agmsmith Exp agmsmith $
+d25 4
+d133 1
+a133 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.16 2005/02/06 23:39:14 agmsmith Exp agmsmith $\n"
+a137 4
+static rfb::IntParameter http_port("HTTPPortNumber",
+  "TCP/IP port on which the server will serve the Java applet VNC Viewer ",
+  5800);
+
+a141 4
+static rfb::StringParameter hosts("Hosts",
+  "Filter describing which hosts are allowed access to this server",
+  "+");
+
+d143 3
+@
+
+
+1.16
+log
+@Bumpped version number.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.15 2005/01/03 00:19:50 agmsmith Exp agmsmith $
+d25 3
+d103 1
+d129 1
+a129 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.15 2005/01/03 00:19:50 agmsmith Exp agmsmith $\n"
+d237 19
+d337 1
+d358 2
+@
+
+
+1.15
+log
+@Based on more recent source than 4.0 Beta 4, update
+comments to show that it's the final 4.0 VNC source.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.14 2005/01/02 21:09:46 agmsmith Exp agmsmith $
+d25 4
+d125 1
+a125 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.14 2005/01/02 21:09:46 agmsmith Exp agmsmith $\n"
+d415 1
+a415 1
+ 
+@
+
+
+1.14
+log
+@Bump the version number.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.13 2004/12/12 21:44:39 agmsmith Exp agmsmith $
+d25 3
+d119 1
+a119 1
+  "VNC Server for BeOS, based on VNC 4.0b4\n"
+d121 1
+a121 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.13 2004/12/12 21:44:39 agmsmith Exp agmsmith $\n"
+@
+
+
+1.13
+log
+@Remove dead event loop timer, it does get stuck for long times
+when the network connection is down.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.12 2004/12/05 23:40:04 agmsmith Exp agmsmith $
+d25 4
+d118 1
+a118 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.12 2004/12/05 23:40:04 agmsmith Exp agmsmith $\n"
+d408 1
+a408 1
+
+@
+
+
+1.12
+log
+@Change timing system to use the event loop rather than a
+separate thread.  Didn't fix the memory crash bug when
+switching screen resolution - so it's not stack size or
+multithreading.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.11 2004/11/27 22:53:12 agmsmith Exp agmsmith $
+d25 6
+d114 1
+a114 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.11 2004/11/27 22:53:12 agmsmith Exp agmsmith $\n"
+d290 1
+a290 4
+  bigtime_t CurrentTime;
+
+  CurrentTime = system_time ();
+  if (CurrentTime - m_TimeOfLastBackgroundUpdate > 20000000)
+d292 2
+a293 8
+    // If it has been dead for a long time, either we have just started up, or
+    // it has actually died.
+
+    vlog.debug ("ServerApp::Pulse: Haven't done any processing in the "
+      "last %d seconds, starting up another BMessage loop.",
+      (CurrentTime - m_TimeOfLastBackgroundUpdate) / 1000000);
+
+    m_TimeOfLastBackgroundUpdate = CurrentTime; // Avoid double messages.
+@
+
+
+1.11
+log
+@Oops, forgot about the network time delay for new data.  Make it shorter
+so that the overall update loop is faster.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.10 2004/11/22 02:40:40 agmsmith Exp agmsmith $
+d25 4
+d96 6
+d108 1
+a108 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.10 2004/11/22 02:40:40 agmsmith Exp agmsmith $\n"
+d145 1
+d150 1
+a150 1
+  void PollNetworkLoop ();
+d156 6
+a161 10
+  volatile bool m_NetworkMonitorSuicideDesired;
+    /* Set this to TRUE to request that the network monitor thread exit as soon
+    as safely possible.  FALSE means keep on running.  When it shuts down, it
+    will reset m_NetworkMonitorThreadID to -1. */
+
+  thread_id m_NetworkMonitorThreadID;
+    /* The ID of the thread which periodically checks for incoming data
+    packets, reads the screen, and does all the work in a tight polling loop
+    (too tight to use Pulse()).  Negative if it doesn't exist.  See also
+    m_NetworkMonitorSuicideDesired. */
+d180 1
+a180 2
+  m_NetworkMonitorSuicideDesired (false),
+  m_NetworkMonitorThreadID (-1),
+a188 10
+  thread_id GrabbedThreadID; // Grab it before it gets changed by thread death.
+  status_t  ThreadExitCode = 0;
+
+  // Kill off the thread that's busy polling the network connections.
+
+  GrabbedThreadID = m_NetworkMonitorThreadID;
+  m_NetworkMonitorSuicideDesired = TRUE;
+  if (GrabbedThreadID >= 0)
+    wait_for_thread (GrabbedThreadID, &ThreadExitCode);
+
+d214 6
+a219 8
+  switch (MessagePntr->what)
+  {
+  }
+
+  /* Pass the unprocessed message to the inherited function, maybe it knows
+  what to do.  This includes replies to messages we sent ourselves. */
+
+  BApplication::MessageReceived (MessagePntr);
+d223 1
+a223 1
+void ServerApp::PollNetworkLoop ()
+d232 19
+a250 29
+    
+    while (!m_NetworkMonitorSuicideDesired)
+    {
+      // Do at most 100 updates per second, more is useless since the screen
+      // refresh rate and Human eye aren't that fast.  Since the screen copying
+      // code is aiming at 50 updates per second, it has 1/100 of a second to
+      // do its work (most of the time that means looking at a small patch of
+      // the screen and noticing that it hasn't changed), plus the 1/100 second
+      // delay here to let the computer do other work.
+
+      tv.tv_sec = 0;
+      tv.tv_usec = 5000; // Time delay in millionths of a second.
+  
+      FD_ZERO(&rfds);
+      FD_SET(m_TcpListenerPntr->getFd(), &rfds);
+  
+      std::list<network::Socket*> sockets;
+      m_VNCServerPntr->getSockets(&sockets);
+      std::list<network::Socket*>::iterator iter;
+      for (iter = sockets.begin(); iter != sockets.end(); iter++)
+        FD_SET((*iter)->getFd(), &rfds);
+  
+      int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
+      if (n < 0) throw rdr::SystemException("select",errno);
+  
+      for (iter = sockets.begin(); iter != sockets.end(); iter++) {
+        if (FD_ISSET((*iter)->getFd(), &rfds)) {
+          m_VNCServerPntr->processSocketEvent(*iter);
+        }
+a251 10
+  
+      if (FD_ISSET(m_TcpListenerPntr->getFd(), &rfds)) {
+        network::Socket* sock = m_TcpListenerPntr->accept();
+        m_VNCServerPntr->addClient(sock);
+      }
+  
+      m_VNCServerPntr->checkTimeouts();
+  
+      if (m_VNCServerPntr->clientsReadyForUpdate ())
+        m_FakeDesktopPntr->BackgroundScreenUpdateCheck ();
+d253 21
+d282 20
+a309 15
+/* A helper function for starting a separate thread for polling the network.
+The unspecified pointer argument is actually a pointer to the ServerApp to use
+when calling the member function PollNetworkLoop(). */
+
+int32 PollNetworkInit (void *PassedInData)
+{
+  ServerApp *ServerAppPntr;
+
+  ServerAppPntr = (ServerApp *) PassedInData;
+  ServerAppPntr->PollNetworkLoop ();
+  ServerAppPntr->m_NetworkMonitorThreadID = -1;
+  return B_OK; // Return code of thread.
+}
+
+
+d327 1
+a327 6
+    m_NetworkMonitorThreadID = spawn_thread (PollNetworkInit,
+      "VNCPollNetwork", B_NORMAL_PRIORITY, this);
+    if (m_NetworkMonitorThreadID < 0)
+      throw rfb::Exception ("ServerApp::ReadyToRun: "
+        "Unable to create network polling thread.");
+    resume_thread (m_NetworkMonitorThreadID); // Start the thread running.
+a336 1
+
+d373 2
+a374 1
+    rfb::LogWriter::setLogParams("*:stderr:1000"); // Normal level is 30.
+@
+
+
+1.10
+log
+@Changed from Pulse() timing to using a separate thread, so now
+mouse clicks and other time sensitive responses are much more
+accurate (1/60 second accuracy at best).
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.9 2004/09/13 01:41:53 agmsmith Exp agmsmith $
+d25 5
+d98 1
+a98 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.9 2004/09/13 01:41:53 agmsmith Exp agmsmith $\n"
+d241 7
+d249 1
+a249 1
+      tv.tv_usec = 50*1000;
+d277 1
+a277 3
+        m_FakeDesktopPntr->forcedUpdateCheck ();
+
+      snooze (1000000 / 60); // At most 60 updates per second.
+@
+
+
+1.9
+log
+@Update rate time limits now in the desktop module.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.8 2004/07/19 22:30:19 agmsmith Exp agmsmith $
+d25 3
+d93 1
+a93 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.8 2004/07/19 22:30:19 agmsmith Exp agmsmith $\n"
+a129 1
+  virtual void Pulse ();
+d133 3
+d140 11
+d168 2
+d178 12
+d224 1
+a224 1
+void ServerApp::Pulse ()
+a230 1
+    bigtime_t      ElapsedTime;
+d233 27
+a259 19
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 50*1000;
+
+    FD_ZERO(&rfds);
+    FD_SET(m_TcpListenerPntr->getFd(), &rfds);
+
+    std::list<network::Socket*> sockets;
+    m_VNCServerPntr->getSockets(&sockets);
+    std::list<network::Socket*>::iterator iter;
+    for (iter = sockets.begin(); iter != sockets.end(); iter++)
+      FD_SET((*iter)->getFd(), &rfds);
+
+    int n = select(FD_SETSIZE, &rfds, 0, 0, &tv);
+    if (n < 0) throw rdr::SystemException("select",errno);
+
+    for (iter = sockets.begin(); iter != sockets.end(); iter++) {
+      if (FD_ISSET((*iter)->getFd(), &rfds)) {
+        m_VNCServerPntr->processSocketEvent(*iter);
+d261 5
+a265 1
+    }
+d267 1
+a267 3
+    if (FD_ISSET(m_TcpListenerPntr->getFd(), &rfds)) {
+      network::Socket* sock = m_TcpListenerPntr->accept();
+      m_VNCServerPntr->addClient(sock);
+a268 5
+
+    m_VNCServerPntr->checkTimeouts();
+
+    if (m_VNCServerPntr->clientsReadyForUpdate ())
+      m_FakeDesktopPntr->forcedUpdateCheck ();
+d285 15
+d316 7
+a328 1
+  SetPulseRate (100000);
+d330 1
+@
+
+
+1.8
+log
+@Updated to work with VNC 4.0 source code (was 4.0 beta 4).
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.7 2004/07/05 00:53:07 agmsmith Exp agmsmith $
+d25 3
+d90 1
+a90 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0-beossrc/beosserver/RCS/ServerMain.cxx,v 1.7 2004/07/05 00:53:07 agmsmith Exp agmsmith $\n"
+a195 2
+  static bigtime_t TimeOfLastUpdateCheck = 0;
+
+d233 2
+a234 14
+    // Try copying data from the frame buffer to the clients, if any need it.
+    // Do this only when we've been idle for a while (1/10 second), otherwise
+    // the Pulse event queue will fill up with pending pulses.
+
+    ElapsedTime = system_time () - TimeOfLastUpdateCheck;
+    if (ElapsedTime > 90000 /* microsecs */)
+    {
+      if (m_VNCServerPntr->clientsReadyForUpdate ())
+      {
+        m_FakeDesktopPntr->forcedUpdateCheck ();
+        m_VNCServerPntr->tryUpdate ();
+        TimeOfLastUpdateCheck = system_time ();
+      }
+    }
+@
+
+
+1.7
+log
+@Check for a forced update too.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.6 2004/06/27 20:31:44 agmsmith Exp agmsmith $
+d25 3
+d87 1
+a87 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.6 2004/06/27 20:31:44 agmsmith Exp agmsmith $\n"
+d230 1
+a230 1
+    m_VNCServerPntr->checkIdleTimeouts();
+@
+
+
+1.6
+log
+@Got it working, so you can now see the desktop in different
+video modes (except 8 bit).  Even lets you switch screens!
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.5 2004/06/07 01:06:50 agmsmith Exp agmsmith $
+d25 4
+d84 1
+a84 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.5 2004/06/07 01:06:50 agmsmith Exp agmsmith $\n"
+d197 2
+a198 1
+    fd_set rfds;
+d233 2
+a234 1
+    if (system_time () - TimeOfLastUpdateCheck > 90000 /* microsecs */)
+d238 1
+@
+
+
+1.5
+log
+@Starting to get the SDesktop working with the frame buffer
+and a BDirectWindow.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.4 2004/02/08 19:43:57 agmsmith Exp agmsmith $
+d25 4
+d80 1
+a80 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.4 2004/02/08 19:43:57 agmsmith Exp agmsmith $\n"
+d186 5
+d223 13
+d274 1
+a274 1
+  SetPulseRate (1000000);
+@
+
+
+1.4
+log
+@FrameBuffer class under construction.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.3 2004/01/25 02:57:42 agmsmith Exp agmsmith $
+d25 3
+a47 1
+#include <rfb/FrameBuffer.h>
+a49 1
+#include <rfb/SDesktop.h>
+d57 2
+d62 1
+a62 1
+#include "FrameBufferBeOS.h"
+d76 1
+a76 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.3 2004/01/25 02:57:42 agmsmith Exp agmsmith $\n"
+d118 1
+a118 1
+  rfb::SStaticDesktop *m_FakeDesktopPntr;
+a157 2
+  FrameBufferBeOS Bleeble;
+
+d236 1
+a236 1
+    m_FakeDesktopPntr = new rfb::SStaticDesktop (rfb::Point (640, 480));
+@
+
+
+1.3
+log
+@Removed loading and saving of settings, just specify the command line
+options every time it is activated.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.2 2004/01/11 00:55:42 agmsmith Exp agmsmith $
+d25 4
+a34 1
+ *
+d45 1
+d56 4
+a59 4
+#include <Directory.h>
+#include <File.h>
+#include <FindDirectory.h>
+#include <Path.h>
+d73 1
+a73 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.2 2004/01/11 00:55:42 agmsmith Exp agmsmith $\n"
+a117 4
+  BPath m_SettingsDirectoryPath;
+    /* The constructor initialises this to the settings directory path.  It
+    never changes after that. */
+
+d155 2
+d291 1
+a291 1
+    rfb::LogWriter::setLogParams("*:stderr:30");
+@
+
+
+1.2
+log
+@Added network initialisation and basic server code.  Now accepts incoming
+connections!  But doesn't display a black remote screen yet.
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.1 2004/01/03 02:32:55 agmsmith Exp agmsmith $
+d25 4
+a65 6
+static const char *g_SettingsDirectoryName =
+  "Virtual Network Computing";
+static const char *g_SettingsFileName =
+  "VNC Server Settings";
+static const uint32 g_SettingsWhatCode = 'VNCS';
+
+d69 1
+a69 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.1 2004/01/03 02:32:55 agmsmith Exp agmsmith $\n"
+d86 1
+a86 1
+// static VncAuthPasswdConfigParameter vncAuthPasswd;
+a109 4
+  status_t LoadSaveSettings (bool DoLoad);
+    /* Either loads the settings from the saved settings file into our class
+    variables, or saves them to the settings file. */
+
+a117 4
+  bool m_SettingsHaveChanged;
+    /* Set to TRUE to show that the settings have changed, which will make it
+    save them when this ServerApp object is destroyed. */
+
+a134 1
+  m_SettingsHaveChanged (false),
+d138 1
+a138 14
+  status_t    ErrorCode;
+
+  /* Set up the pathname which identifies our settings directory.  Note that
+  the actual settings are loaded later on (or set to defaults) by the main()
+  function, before this BApplication starts running.  So we don't bother
+  initialising the other setting related variables here. */
+
+  ErrorCode =
+    find_directory (B_USER_SETTINGS_DIRECTORY, &m_SettingsDirectoryPath);
+  if (ErrorCode == B_OK)
+    ErrorCode = m_SettingsDirectoryPath.Append (g_SettingsDirectoryName);
+  if (ErrorCode != B_OK)
+    m_SettingsDirectoryPath.SetTo (".");
+    }
+a142 3
+  if (m_SettingsHaveChanged)
+    LoadSaveSettings (false /* DoLoad */);
+
+a163 96
+/* Either load the settings (DoLoad is TRUE) from the configuration file or
+write them (DoLoad is FALSE) to it.  The configuration file is a flattened
+BMessage containing the various program settings.  If it doesn't exist (and its
+parent directories don't exist) then it will be created when saving.  If it
+doesn't exist when loading, the settings will be set to default values. */
+
+status_t ServerApp::LoadSaveSettings (bool DoLoad)
+{
+  status_t    ErrorCode;
+  BMessage    Settings;
+  BDirectory  SettingsDirectory;
+  BFile       SettingsFile;
+  char        TempString [2048];
+
+  /* Presumably the settings have been initialised to default values, so don't
+  need to reset them here if doing a load. */
+
+  /* Look for our settings directory.  When saving we can try to create it. */
+
+  ErrorCode = SettingsDirectory.SetTo (m_SettingsDirectoryPath.Path ());
+  if (ErrorCode != B_OK)
+  {
+    if (DoLoad || ErrorCode != B_ENTRY_NOT_FOUND)
+    {
+      sprintf (TempString, "Can't find settings directory \"%s\"",
+        m_SettingsDirectoryPath.Path ());
+      goto ErrorExit;
+    }
+    ErrorCode = create_directory (m_SettingsDirectoryPath.Path (), 0755);
+    if (ErrorCode == B_OK)
+      ErrorCode = SettingsDirectory.SetTo (m_SettingsDirectoryPath.Path ());
+    if (ErrorCode != B_OK)
+    {
+      sprintf (TempString, "Can't create settings directory \"%s\"",
+        m_SettingsDirectoryPath.Path ());
+      goto ErrorExit;
+    }
+  }
+
+  ErrorCode = SettingsFile.SetTo (&SettingsDirectory, g_SettingsFileName,
+    DoLoad ? B_READ_ONLY : B_READ_WRITE | B_CREATE_FILE | B_ERASE_FILE);
+  if (ErrorCode != B_OK)
+  {
+    sprintf (TempString, "Can't open settings file \"%s\" in directory \"%s\" "
+      "for %s", g_SettingsFileName, m_SettingsDirectoryPath.Path(),
+      DoLoad ? "reading" : "writing");
+    goto ErrorExit;
+  }
+
+  if (DoLoad)
+  {
+    ErrorCode = Settings.Unflatten (&SettingsFile);
+    if (ErrorCode != 0 || Settings.what != g_SettingsWhatCode)
+    {
+      sprintf (TempString, "Corrupt data detected while reading settings "
+        "file \"%s\" in directory \"%s\", will revert to defaults",
+        g_SettingsFileName, m_SettingsDirectoryPath.Path());
+      goto ErrorExit;
+    }
+  }
+
+  /* Transfer the settings between the BMessage and our various global
+  variables.  For loading, if the setting isn't present, leave it at the
+  default value. */
+
+  ErrorCode = B_OK; /* So that saving settings can record an error. */
+
+  if (DoLoad)
+    rfb::Configuration::setParam (Settings);
+  else
+    rfb::Configuration::dumpParamsToBMessage (Settings);
+
+  /* Save the settings BMessage to the settings file. */
+
+  if (!DoLoad)
+  {
+    Settings.what = g_SettingsWhatCode;
+    ErrorCode = Settings.Flatten (&SettingsFile);
+    if (ErrorCode != 0)
+    {
+      sprintf (TempString, "Problems while writing settings file \"%s\" in "
+        "directory \"%s\"", g_SettingsFileName,
+        m_SettingsDirectoryPath.Path ());
+      goto ErrorExit;
+    }
+  }
+
+  m_SettingsHaveChanged = false;
+  return B_OK;
+
+ErrorExit: /* Error message in TempString, code in ErrorCode. */
+    vlog.error (rdr::SystemException (TempString, ErrorCode).str());
+  return ErrorCode;
+}
+
+
+a178 1
+  printf ("Pulse.\n");
+d192 3
+a194 4
+    std::list<network::Socket*>::iterator i;
+    for (i = sockets.begin(); i != sockets.end(); i++) {
+      FD_SET((*i)->getFd(), &rfds);
+    }
+d198 6
+a203 1
+printf ("Select has returned.\n");
+a205 1
+printf ("Accepting an incoming connection.\n");
+a209 8
+    m_VNCServerPntr->getSockets(&sockets);
+    for (i = sockets.begin(); i != sockets.end(); i++) {
+      if (FD_ISSET((*i)->getFd(), &rfds)) {
+printf ("Processing socket #%d\n", (*i)->getFd());
+        m_VNCServerPntr->processSocketEvent(*i);
+      }
+    }
+
+a210 1
+    //m_FakeDesktopPntr->poll();
+a289 1
+    MyApp.LoadSaveSettings (true /* DoLoad */);
+d297 1
+a297 2
+        if (rfb::Configuration::setParam(argv[i])) {
+          MyApp.m_SettingsHaveChanged = true;
+a298 1
+        }
+a301 1
+            MyApp.m_SettingsHaveChanged = true;
+d307 1
+a307 2
+      if (rfb::Configuration::setParam(argv[i])) {
+        MyApp.m_SettingsHaveChanged = true;
+a308 1
+      }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+ * $Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.1 2004/01/03 02:31:13 agmsmith Exp agmsmith $
+d25 3
+d30 12
+a42 4
+#include <rfb/SSecurityFactoryStandard.h>
+#include <rfb/LogWriter.h>
+#include <rfb/Logger_stdio.h>
+#include <network/TcpSocket.h>
+d71 1
+a71 1
+  "$Header: /CommonBe/agmsmith/Programming/VNC/vnc-4.0b4-beossrc/beosserver/RCS/ServerMain.cxx,v 1.1 2004/01/03 02:31:13 agmsmith Exp agmsmith $\n"
+d94 3
+a96 1
+ * from the outside world and does some of the processing.
+d117 3
+d125 8
+d144 4
+a147 1
+  m_SettingsHaveChanged (false)
+d162 1
+a162 1
+}
+d169 4
+d282 1
+a282 1
+	  vlog.error (rdr::SystemException (TempString, ErrorCode).str());
+d300 7
+d308 12
+d321 25
+a345 2
+void ServerApp::Pulse ()
+{
+d357 10
+d368 1
+d370 10
+a379 3
+void ServerApp::ReadyToRun ()
+{
+  SetPulseRate (500000);
+d388 1
+a388 1
+  fprintf(stderr, "\nusage: %s [<parameters>]\n", programName);
+d411 6
+d423 2
+a424 2
+    // Display the usage message and exit the program if an unknown parameter is
+    // encountered.
+d448 2
+a449 3
+    ReturnCode = MyApp.InitCheck ();
+    if (ReturnCode == 0)
+      ReturnCode = MyApp.Run ();
+@
