@@ -1,10 +1,10 @@
-_Short: VNC Remote Screen and Keyboard access for BeOS._
-_Author: agmsmith@rogers.com (Alexander G. M. Smith)_
-_Uploader: agmsmith@rogers.com (Alexander G. M. Smith)_
-_Website: http://web.ncf.ca/au829/_
-_Version: 4.0-BeOS-AGMS-1.18_
-_Type: Internet & Network / Servers / Remote Access_
-_Requires: BeOS 5.0+_
+- _Short: VNC Remote Screen and Keyboard access for BeOS._
+- _Author: agmsmith@rogers.com (Alexander G. M. Smith)_
+- _Uploader: agmsmith@rogers.com (Alexander G. M. Smith)_
+- _Website: http://web.ncf.ca/au829/_
+- _Version: 4.0-BeOS-AGMS-1.18_
+- _Type: Internet & Network / Servers / Remote Access_
+- _Requires: BeOS 5.0+_
 
 # VNCServer
 
